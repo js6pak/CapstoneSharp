@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <OutputType>Exe</OutputType>
+
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Optimize>true</Optimize>
+        <Configuration>Release</Configuration>
+        <IsPackable>false</IsPackable>
+        <DefineConstants Condition=" '$(OS)' == 'Windows_NT' ">_WINDOWS</DefineConstants>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
+        <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.2" Condition="'$(OS)' == 'Windows_NT'" />
+
+        <ProjectReference Include="..\CapstoneSharp\CapstoneSharp.csproj" />
+
+        <PackageReference Include="ELFSharp" Version="2.15.0" />
+        <PackageReference Include="libcapstone.runtime.$(NETCoreSdkRuntimeIdentifier)" Version="4.0.2" />
+
+        <PackageReference Include="js6pak.Gee.External.Capstone" Version="2.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- arm64 unity il2cpp TestGame TODO don't store it in git somehow? -->
+        <EmbeddedResource Include="libil2cpp.so" />
+    </ItemGroup>
+</Project>

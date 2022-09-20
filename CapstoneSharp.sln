@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapstoneSharp", "CapstoneSharp\CapstoneSharp.csproj", "{8F225448-4797-40D1-989B-49FFF281C41E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapstoneSharp.Tests", "CapstoneSharp.Tests\CapstoneSharp.Tests.csproj", "{EFD25259-8CFF-4898-A9C8-421C14E3C9AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapstoneSharp.Benchmarks", "CapstoneSharp.Benchmarks\CapstoneSharp.Benchmarks.csproj", "{BDA2A1AD-F671-4128-BA07-B1D6382CBC96}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8F225448-4797-40D1-989B-49FFF281C41E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F225448-4797-40D1-989B-49FFF281C41E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F225448-4797-40D1-989B-49FFF281C41E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F225448-4797-40D1-989B-49FFF281C41E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFD25259-8CFF-4898-A9C8-421C14E3C9AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFD25259-8CFF-4898-A9C8-421C14E3C9AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFD25259-8CFF-4898-A9C8-421C14E3C9AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFD25259-8CFF-4898-A9C8-421C14E3C9AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDA2A1AD-F671-4128-BA07-B1D6382CBC96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDA2A1AD-F671-4128-BA07-B1D6382CBC96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDA2A1AD-F671-4128-BA07-B1D6382CBC96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDA2A1AD-F671-4128-BA07-B1D6382CBC96}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

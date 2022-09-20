@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+        <LangVersion>latest</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <ImplicitUsings>true</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <Version>0.1.0</Version>
+        <Description>Typed but fast C# bindings for capstone</Description>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/js6pak/CapstoneSharp</RepositoryUrl>
+        <!--        <GenerateDocumentationFile>true</GenerateDocumentationFile>-->
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="libcapstone" Version="4.0.2" />
+        <PackageReference Include="System.Memory" Version="4.5.5" Condition="$(TargetFramework) == 'netstandard2.0'" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>$(AssemblyName).Tests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="CapstoneSharp.props" Pack="true" PackagePath="build" />
+    </ItemGroup>
+
+</Project>

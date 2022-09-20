@@ -1,0 +1,10 @@
+<Project>
+    <Import Project="CapstoneSharp/CapstoneSharp.props" />
+
+    <PropertyGroup>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <AnalysisMode>Recommended</AnalysisMode>
+        <AnalysisModePerformance>All</AnalysisModePerformance>
+    </PropertyGroup>
+</Project>

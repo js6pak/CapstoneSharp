@@ -1,0 +1,10 @@
+<Project>
+    <ItemGroup>
+        <Using Include="CapstoneSharp.CapstoneInstruction&lt;
+    CapstoneSharp.Arm64.CapstoneArm64InstructionId,
+    CapstoneSharp.Arm64.CapstoneInstructionArm64Details,
+    CapstoneSharp.Arm64.CapstoneArm64RegisterId,
+    CapstoneSharp.Arm64.CapstoneArm64InstructionGroup
+&gt;" Alias="CapstoneArm64Instruction" />
+    </ItemGroup>
+</Project>
