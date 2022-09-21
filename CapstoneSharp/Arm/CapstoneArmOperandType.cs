@@ -1,8 +1,8 @@
-namespace CapstoneSharp.Arm64;
+namespace CapstoneSharp.Arm;
 
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 [SuppressMessage("ReSharper", "IdentifierTypo")]
-public enum CapstoneArm64OperandType : uint
+public enum CapstoneArmOperandType : uint
 {
     /// <summary>
     ///     Indicates an invalid, or an uninitialized, operand type.
@@ -35,32 +35,17 @@ public enum CapstoneArm64OperandType : uint
     CImmediate = 64,
 
     /// <summary>
-    ///     Indicates a MRS system register operand.
+    ///     Indicates a PImmediate operand.
     /// </summary>
-    MrsSystemRegister,
+    PImmediate,
 
     /// <summary>
-    ///     Indicates a MSR system register operand.
+    ///     Indicates a SETEND operation operand.
     /// </summary>
-    MsrSystemRegister,
+    SetEndOperation,
 
     /// <summary>
-    ///     Indicates a Processor State (PSTATE) field operand.
+    ///     Indicates a system register operand.
     /// </summary>
-    PState,
-
-    /// <summary>
-    ///     Indicates a system operation operand.
-    /// </summary>
-    SystemOperation,
-
-    /// <summary>
-    ///     Indicates a prefetch operation operand.
-    /// </summary>
-    PrefetchOperation,
-
-    /// <summary>
-    ///     Indicates a barrier operation operand.
-    /// </summary>
-    BarrierOperation,
+    SystemRegister,
 }

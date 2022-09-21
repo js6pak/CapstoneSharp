@@ -3,7 +3,7 @@
 Typed but fast C# bindings for capstone
 
 - [x] arm64
-- [ ] arm
+- [x] arm
 - [ ] x86 (you can use use [iced](https://github.com/icedland/iced) instead)
 
 ```cs

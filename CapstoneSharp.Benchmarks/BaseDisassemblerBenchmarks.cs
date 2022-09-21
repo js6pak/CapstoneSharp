@@ -42,7 +42,6 @@ public abstract class BaseDisassemblerBenchmarks
         return new CodeParam(fileName, section.Offset, section.GetContents());
     }
 
-    [SuppressMessage("Performance", "CA1819:Properties should not return arrays")]
     public record CodeParam(string Name, ulong Address, byte[] Value)
     {
         public static implicit operator byte[](CodeParam param) => param.Value;

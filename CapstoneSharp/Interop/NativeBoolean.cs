@@ -1,7 +1,6 @@
 // Taken from https://github.com/MochiLibraries/Biohazrd/blob/9e11ce098fa067438d7fbd032fb9a9cebffaab19/docs/BuiltInDeclarations/NativeBooleanDeclaration.md
 // Replace with DisableRuntimeMarshalling when .net 7.0 releases
 
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 

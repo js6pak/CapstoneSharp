@@ -6,5 +6,12 @@
     CapstoneSharp.Arm64.CapstoneArm64RegisterId,
     CapstoneSharp.Arm64.CapstoneArm64InstructionGroup
 &gt;" Alias="CapstoneArm64Instruction" />
+
+        <Using Include="CapstoneSharp.CapstoneInstruction&lt;
+    CapstoneSharp.Arm.CapstoneArmInstructionId,
+    CapstoneSharp.Arm.CapstoneInstructionArmDetails,
+    CapstoneSharp.Arm.CapstoneArmRegisterId,
+    CapstoneSharp.Arm.CapstoneArmInstructionGroup
+&gt;" Alias="CapstoneArmInstruction" />
     </ItemGroup>
 </Project>

@@ -1,11 +1,10 @@
-namespace CapstoneSharp.Arm64;
+namespace CapstoneSharp.Arm;
 
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 [SuppressMessage("ReSharper", "IdentifierTypo")]
-public enum CapstoneArm64IcOperations : uint
+public enum CapstoneArmSetEndType : uint
 {
     Invalid = 0,
-    IALLUIS,
-    IALLU,
-    IVAU,
+    BE,
+    LE,
 }

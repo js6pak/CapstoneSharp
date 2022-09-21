@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace CapstoneSharp.Arm64;
 
 /// <summary>

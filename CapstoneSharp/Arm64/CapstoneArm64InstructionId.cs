@@ -1,7 +1,5 @@
 // ReSharper disable InconsistentNaming
 
-using System.Diagnostics.CodeAnalysis;
-
 #pragma warning disable CS1591
 namespace CapstoneSharp.Arm64;
 

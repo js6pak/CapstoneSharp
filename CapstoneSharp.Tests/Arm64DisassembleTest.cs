@@ -1,10 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using CapstoneSharp.Arm64;
 
 namespace CapstoneSharp.Tests;
 
-public class Arm64DisassembleTest
+public class Arm64DisassembleTest : BaseDisassembleTest<CapstoneArm64Instruction>
 {
-    private readonly byte[] _code =
+    protected override byte[] Code { get; } =
     {
         0xFF, 0x43, 0x00, 0xD1,
         0xE0, 0x0F, 0x00, 0xB9,
@@ -15,19 +16,20 @@ public class Arm64DisassembleTest
         0xC0, 0x03, 0x5F, 0xD6,
     };
 
-    private readonly CapstoneArm64Disassembler _disassembler = new()
+    protected override ulong Address => 0;
+
+    protected override CapstoneDisassembler<CapstoneArm64Instruction> Disassembler { get; } = new CapstoneArm64Disassembler
     {
         EnableInstructionDetails = true,
     };
 
-    private const ulong Address = 0;
-
-    private static void Verify(CapstoneArm64Instruction instruction, ref int i)
+    [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]
+    protected override void Verify(CapstoneArm64Instruction instruction, ref int i)
     {
         Assert.Equal(4, instruction.Size);
 
-        ref var detail = ref instruction.Details;
-        var archDetail = detail.ArchDetails;
+        ref var details = ref instruction.Details;
+        var archDetails = details.ArchDetails;
 
         switch (i)
         {
@@ -37,7 +39,7 @@ public class Arm64DisassembleTest
                 Assert.Equal("sp, sp, #0x10", instruction.Operands);
 
                 Assert.Equal(CapstoneArm64InstructionId.SUB, instruction.Id);
-                Assert.Collection(archDetail.Operands.ToArray(),
+                Assert.Collection(archDetails.Operands.ToArray(),
                     operand =>
                     {
                         Assert.Equal(CapstoneArm64OperandType.Register, operand.Type);
@@ -64,7 +66,7 @@ public class Arm64DisassembleTest
                 Assert.Equal("w0, [sp, #0xc]", instruction.Operands);
 
                 Assert.Equal(CapstoneArm64InstructionId.STR, instruction.Id);
-                Assert.Collection(archDetail.Operands.ToArray(),
+                Assert.Collection(archDetails.Operands.ToArray(),
                     operand =>
                     {
                         Assert.Equal(CapstoneArm64OperandType.Register, operand.Type);
@@ -87,7 +89,7 @@ public class Arm64DisassembleTest
                 Assert.Equal("w0, [sp, #0xc]", instruction.Operands);
 
                 Assert.Equal(CapstoneArm64InstructionId.LDR, instruction.Id);
-                Assert.Collection(archDetail.Operands.ToArray(),
+                Assert.Collection(archDetails.Operands.ToArray(),
                     operand =>
                     {
                         Assert.Equal(CapstoneArm64OperandType.Register, operand.Type);
@@ -110,7 +112,7 @@ public class Arm64DisassembleTest
                 Assert.Equal("w0, w0, w0", instruction.Operands);
 
                 Assert.Equal(CapstoneArm64InstructionId.MUL, instruction.Id);
-                Assert.Collection(archDetail.Operands.ToArray(),
+                Assert.Collection(archDetails.Operands.ToArray(),
                     operand =>
                     {
                         Assert.Equal(CapstoneArm64OperandType.Register, operand.Type);
@@ -136,7 +138,7 @@ public class Arm64DisassembleTest
                 Assert.Equal("sp, sp, #0x10", instruction.Operands);
 
                 Assert.Equal(CapstoneArm64InstructionId.ADD, instruction.Id);
-                Assert.Collection(archDetail.Operands.ToArray(),
+                Assert.Collection(archDetails.Operands.ToArray(),
                     operand =>
                     {
                         Assert.Equal(CapstoneArm64OperandType.Register, operand.Type);
@@ -162,14 +164,14 @@ public class Arm64DisassembleTest
                 Assert.Equal("#4", instruction.Operands);
 
                 Assert.Equal(CapstoneArm64InstructionId.B, instruction.Id);
-                Assert.Collection(detail.Groups.ToArray(),
+                Assert.Collection(details.Groups.ToArray(),
                     group => Assert.Equal(CapstoneArm64InstructionGroup.JUMP, group),
                     group => Assert.Equal(CapstoneArm64InstructionGroup.BRANCH_RELATIVE, group)
                 );
-                Assert.True(detail.BelongsToGroup(CapstoneArm64InstructionGroup.JUMP));
-                Assert.True(detail.BelongsToGroup(CapstoneArm64InstructionGroup.BRANCH_RELATIVE));
+                Assert.True(details.BelongsToGroup(CapstoneArm64InstructionGroup.JUMP));
+                Assert.True(details.BelongsToGroup(CapstoneArm64InstructionGroup.BRANCH_RELATIVE));
 
-                Assert.Collection(archDetail.Operands.ToArray(),
+                Assert.Collection(archDetails.Operands.ToArray(),
                     operand =>
                     {
                         Assert.Equal(CapstoneArm64OperandType.Immediate, operand.Type);
@@ -185,10 +187,10 @@ public class Arm64DisassembleTest
                 Assert.Equal(string.Empty, instruction.Operands);
 
                 Assert.Equal(CapstoneArm64InstructionId.RET, instruction.Id);
-                Assert.Collection(detail.Groups.ToArray(), group => Assert.Equal(CapstoneArm64InstructionGroup.RET, group));
-                Assert.True(detail.BelongsToGroup(CapstoneArm64InstructionGroup.RET));
+                Assert.Collection(details.Groups.ToArray(), group => Assert.Equal(CapstoneArm64InstructionGroup.RET, group));
+                Assert.True(details.BelongsToGroup(CapstoneArm64InstructionGroup.RET));
 
-                Assert.Empty(archDetail.Operands.ToArray());
+                Assert.Empty(archDetails.Operands.ToArray());
 
                 break;
             }
@@ -198,58 +200,5 @@ public class Arm64DisassembleTest
         }
 
         i++;
-    }
-
-    [Fact]
-    public void Disassemble()
-    {
-        var i = 0;
-
-        var instructions = _disassembler.Disassemble(_code, Address);
-        foreach (var instruction in instructions)
-        {
-            Verify(instruction, ref i);
-        }
-
-        _disassembler.FreeInstructions(instructions);
-    }
-
-    [Fact]
-    public unsafe void Iterate()
-    {
-        var i = 0;
-
-        var instruction = _disassembler.AllocInstruction();
-
-        var code = (ReadOnlySpan<byte>)_code;
-        var address = Address;
-        while (_disassembler.Iterate(ref code, ref address, instruction))
-        {
-            Verify(*instruction, ref i);
-        }
-
-        _disassembler.FreeInstruction(instruction);
-    }
-
-    [Fact]
-    public void RefEnumerableIterate()
-    {
-        var i = 0;
-
-        foreach (var instruction in _disassembler.Iterate(_code, Address))
-        {
-            Verify(instruction, ref i);
-        }
-    }
-    
-    [Fact]
-    public void ToEnumerableIterate()
-    {
-        var i = 0;
-
-        foreach (var instruction in _disassembler.Iterate(_code, Address).ToEnumerable())
-        {
-            Verify(instruction, ref i);
-        }
     }
 }

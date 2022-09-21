@@ -1,7 +1,5 @@
 // ReSharper disable InconsistentNaming
 
-using System.Diagnostics.CodeAnalysis;
-
 namespace CapstoneSharp.Arm64;
 
 [SuppressMessage("ReSharper", "InconsistentNaming")]

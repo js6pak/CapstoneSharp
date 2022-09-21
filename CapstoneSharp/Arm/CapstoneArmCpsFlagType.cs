@@ -1,11 +1,12 @@
-namespace CapstoneSharp.Arm64;
+namespace CapstoneSharp.Arm;
 
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 [SuppressMessage("ReSharper", "IdentifierTypo")]
-public enum CapstoneArm64IcOperations : uint
+public enum CapstoneArmCpsFlagType : uint
 {
     Invalid = 0,
-    IALLUIS,
-    IALLU,
-    IVAU,
+    F = 1,
+    I = 2,
+    A = 4,
+    None = 16,
 }
