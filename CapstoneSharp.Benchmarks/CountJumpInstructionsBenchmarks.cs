@@ -1,25 +1,13 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Columns;
-using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Reports;
 using CapstoneSharp.Arm64;
 using Gee.External.Capstone.Arm64;
 
 namespace CapstoneSharp.Benchmarks;
 
-[Config(typeof(Config))]
 public class CountJumpInstructionsBenchmarks : BaseDisassemblerBenchmarks
 {
-    public class Config : ManualConfig
-    {
-        public Config()
-        {
-            WithSummaryStyle(SummaryStyle.Default.WithSizeUnit(SizeUnit.MB));
-        }
-    }
-
     [Benchmark]
-    public int CountJumpInstructions_CapstoneSharp()
+    public int CountJumpInstructions_CapstoneSharp_Iterate()
     {
         var count = 0;
 
@@ -30,6 +18,25 @@ public class CountJumpInstructionsBenchmarks : BaseDisassemblerBenchmarks
                 count++;
             }
         }
+
+        return count;
+    }
+
+    [Benchmark]
+    public int CountJumpInstructions_CapstoneSharp_Disassemble()
+    {
+        var count = 0;
+
+        var span = Disassembler.Disassemble(Code, Code.Address);
+        foreach (var instruction in span)
+        {
+            if (instruction.Details.BelongsToGroup(CapstoneArm64InstructionGroup.JUMP))
+            {
+                count++;
+            }
+        }
+
+        Disassembler.FreeInstructions(span);
 
         return count;
     }

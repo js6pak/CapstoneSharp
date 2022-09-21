@@ -20,34 +20,47 @@ public class CountBenchmarks : BaseDisassemblerBenchmarks
     public unsafe int Count_ManualIterate()
     {
         var count = 0;
-    
+
         var ins = Disassembler.AllocInstruction();
-    
+
         var code = (ReadOnlySpan<byte>)Code;
         var address = Code.Address;
         while (Disassembler.Iterate(ref code, ref address, ins))
         {
             count++;
         }
-    
+
         Disassembler.FreeInstruction(ins);
-    
+
         return count;
     }
-    
+
     [Benchmark]
-    public int Count_ForEachIterate()
+    public int Count_RefEnumerableIterate()
     {
         var count = 0;
-    
+
         foreach (var instruction in Disassembler.Iterate(Code, Code.Address))
         {
             count++;
         }
-    
+
         return count;
     }
-    
+
+    [Benchmark]
+    public int Count_IEnumerableIterate()
+    {
+        var count = 0;
+
+        foreach (var instruction in Disassembler.Iterate(Code, Code.Address).ToEnumerable())
+        {
+            count++;
+        }
+
+        return count;
+    }
+
     [Benchmark]
     public int Count_CapstoneNET()
     {

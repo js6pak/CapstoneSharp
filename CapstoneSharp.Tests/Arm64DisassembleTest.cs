@@ -232,11 +232,22 @@ public class Arm64DisassembleTest
     }
 
     [Fact]
-    public void EnumerableIterate()
+    public void RefEnumerableIterate()
     {
         var i = 0;
 
         foreach (var instruction in _disassembler.Iterate(_code, Address))
+        {
+            Verify(instruction, ref i);
+        }
+    }
+    
+    [Fact]
+    public void ToEnumerableIterate()
+    {
+        var i = 0;
+
+        foreach (var instruction in _disassembler.Iterate(_code, Address).ToEnumerable())
         {
             Verify(instruction, ref i);
         }
