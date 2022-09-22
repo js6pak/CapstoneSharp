@@ -67,4 +67,10 @@ public class CountBenchmarks : BaseDisassemblerBenchmarks
         var instructions = GeeDisassembler.Iterate(Code, (long)Code.Address);
         return instructions.Count();
     }
+
+    [Benchmark]
+    public int Count_DisArm()
+    {
+        return Disarm.Disassembler.DisassembleOnDemand(Code.Value, Code.Address, continueOnError: true).Count();
+    }
 }

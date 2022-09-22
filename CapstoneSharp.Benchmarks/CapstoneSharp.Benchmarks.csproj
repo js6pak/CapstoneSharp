@@ -22,6 +22,7 @@
         <PackageReference Include="libcapstone.runtime.$(NETCoreSdkRuntimeIdentifier)" Version="4.0.2" />
 
         <PackageReference Include="js6pak.Gee.External.Capstone" Version="2.1.0" />
+        <PackageReference Include="Disarm" Version="2022.1.0-master.16" />
     </ItemGroup>
 
     <ItemGroup>
