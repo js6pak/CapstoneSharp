@@ -7,7 +7,7 @@ namespace CapstoneSharp;
 /// <summary>
 /// Detail information of disassembled instruction
 /// </summary>
-public unsafe struct CapstoneInstruction<TId, TArchDetails, TRegister, TGroup> : IInstruction
+public unsafe struct CapstoneInstruction<TId, TArchDetails, TRegister, TGroup> : IInstruction<CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>>
     where TId : unmanaged, Enum
     where TArchDetails : unmanaged, ICapstoneInstructionArchDetails
     where TRegister : unmanaged, Enum
@@ -69,9 +69,33 @@ public unsafe struct CapstoneInstruction<TId, TArchDetails, TRegister, TGroup> :
         }
     }
 
+#if NET6_0_OR_GREATER
+    private static T* Alloc<T>() where T : unmanaged
+    {
+        return (T*)NativeMemory.AllocZeroed((nuint)sizeof(T));
+    }
+
+    static CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>* IInstruction<CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>>.Alloc(bool allocateHandle)
+    {
+        var instruction = Alloc<CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>>();
+        instruction->_details = allocateHandle ? Alloc<CapstoneInstructionDetails<TArchDetails, TRegister, TGroup>>() : default;
+        return instruction;
+    }
+
+    static void IInstruction<CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>>.Free(CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>* instruction, nuint count)
+    {
+        for (nuint i = 0; i < count; i++)
+        {
+            NativeMemory.Free(instruction[i]._details);
+        }
+
+        NativeMemory.Free(instruction);
+    }
+#endif
+
     /// <summary>Pointer to cs_detail</summary>
     /// <remarks>detail pointer is only valid when detail option is turned on</remarks>
-    private readonly CapstoneInstructionDetails<TArchDetails, TRegister, TGroup>* _details;
+    private CapstoneInstructionDetails<TArchDetails, TRegister, TGroup>* _details;
 
     public ref CapstoneInstructionDetails<TArchDetails, TRegister, TGroup> Details => ref *_details;
 }

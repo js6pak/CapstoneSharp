@@ -1,6 +1,6 @@
 namespace CapstoneSharp.Tests;
 
-public abstract class BaseDisassembleTest<TInstruction> where TInstruction : unmanaged, IInstruction
+public abstract class BaseDisassembleTest<TInstruction> where TInstruction : unmanaged, IInstruction<TInstruction>
 {
     protected abstract byte[] Code { get; }
     protected abstract ulong Address { get; }

@@ -4,7 +4,7 @@ using CapstoneSharp.Interop;
 
 namespace CapstoneSharp;
 
-public abstract unsafe class CapstoneDisassembler<TInstruction> : IDisposable where TInstruction : unmanaged, IInstruction
+public abstract unsafe class CapstoneDisassembler<TInstruction> : IDisposable where TInstruction : unmanaged, IInstruction<TInstruction>
 {
     private CapstoneDisassemblerHandle _handle;
 
@@ -46,12 +46,21 @@ public abstract unsafe class CapstoneDisassembler<TInstruction> : IDisposable wh
 
     public TInstruction* AllocInstruction()
     {
+#if NET6_0_OR_GREATER
+        // Use our own alloc to save ~1000 bytes by allocating specific arch details struct
+        return TInstruction.Alloc(EnableInstructionDetails);
+#else
         return (TInstruction*)CapstoneImports.malloc(_handle);
+#endif
     }
 
     public void FreeInstruction(TInstruction* instruction, nuint count = 1)
     {
+#if NET6_0_OR_GREATER
+        TInstruction.Free(instruction, count);
+#else
         CapstoneImports.free(instruction, count);
+#endif
     }
 
     public void FreeInstructions(ReadOnlySpan<TInstruction> instructions)
