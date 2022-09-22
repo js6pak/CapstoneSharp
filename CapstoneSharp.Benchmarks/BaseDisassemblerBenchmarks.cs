@@ -20,11 +20,13 @@ public abstract class BaseDisassemblerBenchmarks
     protected CapstoneArm64Disassembler Disassembler { get; } = new()
     {
         EnableInstructionDetails = true,
+        EnableSkipData = true,
     };
 
     protected GeeArm64Disassembler GeeDisassembler { get; } = new(Arm64DisassembleMode.LittleEndian)
     {
         EnableInstructionDetails = true,
+        EnableSkipDataMode = true,
     };
 
     [GlobalCleanup]

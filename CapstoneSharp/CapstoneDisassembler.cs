@@ -32,6 +32,14 @@ public abstract unsafe class CapstoneDisassembler<TInstruction> : IDisposable wh
         set => SetOption(CapstoneOptionType.Detail, _enableInstructionDetails = value);
     }
 
+    private bool _enableSkipData;
+
+    public bool EnableSkipData
+    {
+        get => _enableSkipData;
+        set => SetOption(CapstoneOptionType.SkipData, _enableSkipData = value);
+    }
+
     public ReadOnlySpan<TInstruction> Disassemble(ReadOnlySpan<byte> code, ulong address, int count = 0)
     {
         _handle.EnsureAlive();

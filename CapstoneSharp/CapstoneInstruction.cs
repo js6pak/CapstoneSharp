@@ -13,13 +13,15 @@ public unsafe struct CapstoneInstruction<TId, TArchDetails, TRegister, TGroup> :
     where TRegister : unmanaged, Enum
     where TGroup : unmanaged, Enum
 {
-    private TId _id;
+    private uint _id;
 
     /// <summary>Instruction ID (basically a numeric ID for the instruction mnemonic)</summary>
     /// <remarks>NOTE: in Skipdata mode, "data" instruction has 0 for this id field.</remarks>
-    public readonly TId Id => _id;
+    public TId Id => Unsafe.As<uint, TId>(ref _id);
 
-    uint IInstruction.Id => Unsafe.As<TId, uint>(ref _id);
+    public bool IsSkippedData => _id == 0;
+
+    uint IInstruction<CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>>.Id => _id;
 
     /// <summary>Address (EIP) of this instruction</summary>
     public ulong Address { get; }
@@ -97,5 +99,17 @@ public unsafe struct CapstoneInstruction<TId, TArchDetails, TRegister, TGroup> :
     /// <remarks>detail pointer is only valid when detail option is turned on</remarks>
     private CapstoneInstructionDetails<TArchDetails, TRegister, TGroup>* _details;
 
-    public ref CapstoneInstructionDetails<TArchDetails, TRegister, TGroup> Details => ref *_details;
+    public ref CapstoneInstructionDetails<TArchDetails, TRegister, TGroup> Details
+    {
+        get
+        {
+            if (IsSkippedData) throw new InvalidOperationException("Cannot get details for data");
+            return ref *_details;
+        }
+    }
+
+    public override string ToString()
+    {
+        return string.Join(" ", Mnemonic, Operands);
+    }
 }

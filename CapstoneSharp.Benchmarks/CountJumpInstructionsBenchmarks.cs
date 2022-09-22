@@ -13,6 +13,7 @@ public class CountJumpInstructionsBenchmarks : BaseDisassemblerBenchmarks
 
         foreach (var instruction in Disassembler.Iterate(Code, Code.Address))
         {
+            if (instruction.IsSkippedData) continue;
             if (instruction.Details.BelongsToGroup(CapstoneArm64InstructionGroup.JUMP))
             {
                 count++;
@@ -30,6 +31,7 @@ public class CountJumpInstructionsBenchmarks : BaseDisassemblerBenchmarks
         var span = Disassembler.Disassemble(Code, Code.Address);
         foreach (var instruction in span)
         {
+            if (instruction.IsSkippedData) continue;
             if (instruction.Details.BelongsToGroup(CapstoneArm64InstructionGroup.JUMP))
             {
                 count++;
@@ -49,6 +51,7 @@ public class CountJumpInstructionsBenchmarks : BaseDisassemblerBenchmarks
 
         foreach (var instruction in instructions)
         {
+            if (instruction.IsSkippedData) continue;
             if (instruction.Details.BelongsToGroup(Arm64InstructionGroupId.ARM64_GRP_JUMP))
             {
                 count++;
