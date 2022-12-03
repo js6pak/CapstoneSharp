@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <OutputType>Exe</OutputType>
 
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -18,7 +18,7 @@
 
         <ProjectReference Include="..\CapstoneSharp\CapstoneSharp.csproj" />
 
-        <PackageReference Include="ELFSharp" Version="2.15.0" />
+        <PackageReference Include="ELFSharp" Version="2.15.2" />
         <PackageReference Include="libcapstone.runtime.$(NETCoreSdkRuntimeIdentifier)" Version="4.0.2" />
 
         <PackageReference Include="js6pak.Gee.External.Capstone" Version="2.1.0" />
