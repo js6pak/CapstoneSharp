@@ -1,9 +1,10 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using CapstoneSharp.Interop;
 
 namespace CapstoneSharp.Arm;
 
+[SuppressMessage("ReSharper", "UnassignedGetOnlyAutoProperty", Justification = "This is a struct used for interop")]
+#pragma warning disable CS0649
 public readonly struct CapstoneArmOperand
 {
     public int VectorIndex { get; }

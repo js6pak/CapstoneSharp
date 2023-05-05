@@ -2,16 +2,33 @@
 
 namespace CapstoneSharp.Interop;
 
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 internal static unsafe class CapstoneImports
 {
     [DllImport("capstone", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cs_support", ExactSpelling = true)]
     public static extern NativeBoolean support(int query);
 
     [DllImport("capstone", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cs_open", ExactSpelling = true)]
-    public static extern CapstoneStatus open(CapstoneArch arch, CapstoneMode mode, out CapstoneDisassemblerHandle handle);
+    public static extern CapstoneStatus open(CapstoneArch arch, CapstoneMode mode, CapstoneDisassemblerHandle* handle);
+
+    public static CapstoneStatus open(CapstoneArch arch, CapstoneMode mode, out CapstoneDisassemblerHandle handle)
+    {
+        fixed (CapstoneDisassemblerHandle* handlePtr = &handle)
+        {
+            return open(arch, mode, handlePtr);
+        }
+    }
 
     [DllImport("capstone", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cs_close", ExactSpelling = true)]
-    public static extern CapstoneStatus close(ref CapstoneDisassemblerHandle handle);
+    public static extern CapstoneStatus close(CapstoneDisassemblerHandle* handle);
+
+    public static CapstoneStatus close(ref CapstoneDisassemblerHandle handle)
+    {
+        fixed (CapstoneDisassemblerHandle* handlePtr = &handle)
+        {
+            return close(handlePtr);
+        }
+    }
 
     /// <summary>
     /// Set option for disassembling engine at runtime
@@ -53,7 +70,7 @@ internal static unsafe class CapstoneImports
     /// <param name="insn">array of instructions filled in by this API.</param>
     /// <returns>the number of successfully disassembled instructions, or 0 if this function failed to disassemble the given code</returns>
     [DllImport("capstone", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cs_disasm", ExactSpelling = true)]
-    public static extern nuint disasm(CapstoneDisassemblerHandle handle, byte* code, nuint codeSize, ulong address, nuint count, out CapstoneInstructionHandle insn);
+    public static extern nuint disasm(CapstoneDisassemblerHandle handle, byte* code, nuint codeSize, ulong address, nuint count, void** insn);
 
     /// <summary>
     /// Free memory allocated by cs_malloc() or cs_disasm()
@@ -61,7 +78,7 @@ internal static unsafe class CapstoneImports
     /// <param name="insn">pointer returned by @insn argument in cs_disasm() or cs_malloc()</param>
     /// <param name="count">number of CapstoneInsturction structures returned by cs_disasm(), or 1 to free memory allocated by cs_malloc().</param>
     [DllImport("capstone", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cs_free", ExactSpelling = true)]
-    public static extern void free(CapstoneInstructionHandle insn, nuint count);
+    public static extern void free(void* insn, nuint count);
 
     /// <summary>
     /// Allocate memory for 1 instruction to be used by cs_disasm_iter().
@@ -69,7 +86,7 @@ internal static unsafe class CapstoneImports
     /// <param name="handle">handle returned by cs_open()</param>
     /// <remarks>when no longer in use, you can reclaim the memory allocated for this instruction with cs_free(insn, 1)</remarks>
     [DllImport("capstone", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cs_malloc", ExactSpelling = true)]
-    public static extern CapstoneInstructionHandle malloc(CapstoneDisassemblerHandle handle);
+    public static extern void* malloc(CapstoneDisassemblerHandle handle);
 
     /// <summary>
     /// Fast API to disassemble binary code, given the code buffer, size, address
@@ -83,7 +100,7 @@ internal static unsafe class CapstoneImports
     /// <param name="insn">pointer to instruction to be filled in by this API.</param>
     /// <returns>true if this API successfully decode 1 instruction, or false otherwise.</returns>
     [DllImport("capstone", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cs_disasm_iter", ExactSpelling = true)]
-    public static extern NativeBoolean disasm_iter(CapstoneDisassemblerHandle handle, byte** code, nuint* size, ulong* address, CapstoneInstructionHandle insn);
+    public static extern NativeBoolean disasm_iter(CapstoneDisassemblerHandle handle, byte** code, nuint* size, ulong* address, void* insn);
 
     [DllImport("capstone", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cs_reg_name", ExactSpelling = true)]
     public static extern byte* reg_name(CapstoneDisassemblerHandle handle, uint regId);
@@ -95,5 +112,5 @@ internal static unsafe class CapstoneImports
     public static extern byte* group_name(CapstoneDisassemblerHandle handle, uint groupId);
 
     [DllImport("capstone", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cs_regs_access", ExactSpelling = true)]
-    public static extern CapstoneStatus regs_access(CapstoneDisassemblerHandle handle, CapstoneInstructionHandle insn, ushort* regsRead, byte* regsReadCount, ushort* regsWrite, byte* regsWriteCount);
+    public static extern CapstoneStatus regs_access(CapstoneDisassemblerHandle handle, void* insn, ushort* regsRead, byte* regsReadCount, ushort* regsWrite, byte* regsWriteCount);
 }

@@ -1,5 +1,12 @@
 // Taken from https://github.com/MochiLibraries/Biohazrd/blob/9e11ce098fa067438d7fbd032fb9a9cebffaab19/docs/BuiltInDeclarations/NativeBooleanDeclaration.md
-// Replace with DisableRuntimeMarshalling when .net 7.0 releases
+
+#if NET7_0_OR_GREATER
+global using NativeBoolean = System.Boolean;
+using System.Runtime.CompilerServices;
+
+[assembly: DisableRuntimeMarshalling]
+#else
+global using NativeBoolean = CapstoneSharp.Interop.NativeBoolean;
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -77,3 +84,4 @@ public readonly struct NativeBoolean : IComparable, IComparable<bool>, IEquatabl
         return !(left == right);
     }
 }
+#endif

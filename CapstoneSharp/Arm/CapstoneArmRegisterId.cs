@@ -1,7 +1,5 @@
 namespace CapstoneSharp.Arm;
 
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-[SuppressMessage("ReSharper", "IdentifierTypo")]
 public enum CapstoneArmRegisterId : uint
 {
     Invalid = 0,

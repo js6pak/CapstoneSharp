@@ -4,3 +4,8 @@ dotnet_diagnostic.CA1720.severity = none
 dotnet_diagnostic.CA1069.severity = none
 dotnet_diagnostic.CA1815.severity = none
 dotnet_diagnostic.CA1819.severity = none
+dotnet_diagnostic.CA1008.severity = none
+
+[{**/\#Operand/*.cs,**/Capstone*InstructionGroup.cs,**/Capstone*InstructionId.cs,**/Capstone*RegisterId.cs}]
+resharper_inconsistent_naming_highlighting = none
+resharper_identifier_typo_highlighting = none

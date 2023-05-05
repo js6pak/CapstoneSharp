@@ -1,7 +1,5 @@
 namespace CapstoneSharp.Arm;
 
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-[SuppressMessage("ReSharper", "IdentifierTypo")]
 public enum CapstoneArmInstructionGroup : byte
 {
     Invalid = 0,

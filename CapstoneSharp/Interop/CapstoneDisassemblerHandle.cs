@@ -13,7 +13,7 @@ internal readonly unsafe struct CapstoneDisassemblerHandle
     {
         if (_handle == default)
         {
-            throw new ObjectDisposedException("Disassembler handle is null, are you trying to use it after Dispose?");
+            throw new ObjectDisposedException(nameof(CapstoneDisassemblerHandle), "Disassembler handle is null, are you trying to use it after Dispose?");
         }
     }
 }

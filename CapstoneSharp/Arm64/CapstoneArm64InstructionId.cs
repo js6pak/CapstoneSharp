@@ -1,14 +1,9 @@
-// ReSharper disable InconsistentNaming
-
-#pragma warning disable CS1591
 namespace CapstoneSharp.Arm64;
 
 /// <summary>
 /// ARM64 instruction id
 /// </summary>
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-[SuppressMessage("ReSharper", "IdentifierTypo")]
-public enum CapstoneArm64InstructionId
+public enum CapstoneArm64InstructionId : uint
 {
     Invalid = 0,
     ABS,

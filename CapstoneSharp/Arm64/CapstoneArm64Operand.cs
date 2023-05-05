@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 
 namespace CapstoneSharp.Arm64;
 
+[SuppressMessage("ReSharper", "UnassignedGetOnlyAutoProperty", Justification = "This is a struct used for interop")]
+#pragma warning disable CS0649
 public readonly struct CapstoneArm64Operand
 {
     public int VectorIndex { get; }
