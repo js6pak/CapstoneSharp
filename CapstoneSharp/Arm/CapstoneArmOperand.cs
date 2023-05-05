@@ -37,7 +37,7 @@ public readonly struct CapstoneArmOperand
         }
     }
 
-    public long Immediate
+    public int Immediate
     {
         get
         {
