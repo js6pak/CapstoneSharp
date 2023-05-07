@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using GeeArm64Disassembler = Gee.External.Capstone.Arm64.CapstoneArm64Disassembler;
 
 namespace CapstoneSharp.Benchmarks;
@@ -8,69 +6,41 @@ namespace CapstoneSharp.Benchmarks;
 public class CountBenchmarks : BaseDisassemblerBenchmarks
 {
     [Benchmark]
-    public int Count_Disassemble()
+    public int CapstoneSharp_Iterate()
     {
-        var span = Disassembler.Disassemble(Code, Code.Address);
-        var count = span.Length;
-        Disassembler.FreeInstructions(span);
-        return count;
+        return Disassembler.Iterate(Code.Value, Code.Address).Count();
     }
 
     [Benchmark]
-    public unsafe int Count_ManualIterate()
+    public unsafe int CapstoneSharp_UnsafeIterate()
     {
         var count = 0;
 
-        var ins = Disassembler.AllocInstruction();
-
-        var code = (ReadOnlySpan<byte>)Code;
-        var address = Code.Address;
-        while (Disassembler.Iterate(ref code, ref address, ins))
+        using (Disassembler.AllocInstruction(out var instruction))
         {
-            count++;
-        }
-
-        Disassembler.FreeInstruction(ins);
-
-        return count;
-    }
-
-    [Benchmark]
-    public int Count_RefEnumerableIterate()
-    {
-        var count = 0;
-
-        foreach (var instruction in Disassembler.Iterate(Code, Code.Address))
-        {
-            count++;
+            fixed (byte* code = Code.Value)
+            {
+                var size = (nuint)Code.Value.Length;
+                var address = Code.Address;
+                while (Disassembler.UnsafeIterate(&code, &size, &address, instruction))
+                {
+                    count++;
+                }
+            }
         }
 
         return count;
     }
 
     [Benchmark]
-    public int Count_IEnumerableIterate()
+    public int CapstoneNET()
     {
-        var count = 0;
-
-        foreach (var instruction in Disassembler.Iterate(Code, Code.Address).ToEnumerable())
-        {
-            count++;
-        }
-
-        return count;
+        return GeeDisassembler.Iterate(Code.Value, (long)Code.Address).Count();
     }
 
     [Benchmark]
-    public int Count_CapstoneNET()
+    public int DisArm()
     {
-        var instructions = GeeDisassembler.Iterate(Code, (long)Code.Address);
-        return instructions.Count();
-    }
-
-    [Benchmark]
-    public int Count_DisArm()
-    {
-        return Disarm.Disassembler.DisassembleOnDemand(Code.Value, Code.Address, continueOnError: true).Count();
+        return Disarm.Disassembler.Disassemble(Code.Value, Code.Address, Disarm.Disassembler.Options.IgnoreErrors).Count();
     }
 }

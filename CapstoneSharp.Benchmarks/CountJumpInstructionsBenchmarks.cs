@@ -12,7 +12,7 @@ public class CountJumpInstructionsBenchmarks : BaseDisassemblerBenchmarks
     {
         var count = 0;
 
-        foreach (var instruction in Disassembler.Iterate(Code, Code.Address))
+        foreach (var instruction in Disassembler.Iterate(Code.Value, Code.Address))
         {
             if (instruction.IsSkippedData) continue;
             if (instruction.Details.BelongsToGroup(CapstoneArm64InstructionGroup.JUMP))
@@ -29,35 +29,68 @@ public class CountJumpInstructionsBenchmarks : BaseDisassemblerBenchmarks
     {
         var count = 0;
 
-        foreach (var instruction in DisassemblerNoDetails.Iterate(Code, Code.Address))
+        foreach (var instruction in DisassemblerNoDetails.Iterate(Code.Value, Code.Address))
         {
             if (instruction.IsSkippedData) continue;
-            if (instruction.Id is CapstoneArm64InstructionId.B or CapstoneArm64InstructionId.BL or CapstoneArm64InstructionId.BLR or CapstoneArm64InstructionId.BR)
+            switch (instruction.Id)
             {
-                count++;
+                case CapstoneArm64InstructionId.B:
+                case CapstoneArm64InstructionId.BL:
+                case CapstoneArm64InstructionId.BLR:
+                case CapstoneArm64InstructionId.BR:
+                case CapstoneArm64InstructionId.CBNZ:
+                case CapstoneArm64InstructionId.CBZ:
+                case CapstoneArm64InstructionId.TBNZ:
+                case CapstoneArm64InstructionId.TBZ:
+                    count++;
+                    break;
             }
         }
 
         return count;
     }
 
-
     [Benchmark]
-    public int CapstoneSharp_Disassemble()
+    public unsafe int CapstoneSharp_PinnedArrayIterate()
     {
         var count = 0;
 
-        var span = Disassembler.Disassemble(Code, Code.Address);
-        foreach (var instruction in span)
+        fixed (byte* code = Code.Value)
         {
-            if (instruction.IsSkippedData) continue;
-            if (instruction.Details.BelongsToGroup(CapstoneArm64InstructionGroup.JUMP))
+            foreach (var instruction in Disassembler.Iterate(code, (nuint)Code.Value.Length, Code.Address))
             {
-                count++;
+                if (instruction.IsSkippedData) continue;
+                if (instruction.Details.BelongsToGroup(CapstoneArm64InstructionGroup.JUMP))
+                {
+                    count++;
+                }
             }
         }
 
-        Disassembler.FreeInstructions(span);
+        return count;
+    }
+
+    [Benchmark]
+    public unsafe int CapstoneSharp_UnsafeIterate()
+    {
+        var count = 0;
+
+        using (Disassembler.AllocInstruction(out var instruction))
+        {
+            fixed (byte* code = Code.Value)
+            {
+                var size = (nuint)Code.Value.Length;
+                var address = Code.Address;
+                while (Disassembler.UnsafeIterate(&code, &size, &address, instruction))
+                {
+                    if (instruction->IsSkippedData) continue;
+                    if (instruction->Details->BelongsToGroup(CapstoneArm64InstructionGroup.JUMP))
+                    {
+                        count++;
+                    }
+                }
+            }
+        }
 
         return count;
     }
@@ -66,7 +99,7 @@ public class CountJumpInstructionsBenchmarks : BaseDisassemblerBenchmarks
     public int CapstoneNET()
     {
         var count = 0;
-        var instructions = GeeDisassembler.Iterate(Code, (long)Code.Address);
+        var instructions = GeeDisassembler.Iterate(Code.Value, (long)Code.Address);
 
         foreach (var instruction in instructions)
         {
@@ -81,33 +114,25 @@ public class CountJumpInstructionsBenchmarks : BaseDisassemblerBenchmarks
     }
 
     [Benchmark]
-    public int DisArm_Disassemble()
+    public int DisArm()
     {
         var count = 0;
-        var instructions = Disarm.Disassembler.Disassemble(Code.Value, Code.Address, continueOnError: true).Instructions;
+        var instructions = Disarm.Disassembler.Disassemble(Code.Value, Code.Address, Disarm.Disassembler.Options.IgnoreErrors);
 
         foreach (var instruction in instructions)
         {
-            if (instruction.Mnemonic is Arm64Mnemonic.B or Arm64Mnemonic.BL or Arm64Mnemonic.BLR or Arm64Mnemonic.BR)
+            switch (instruction.Mnemonic)
             {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    [Benchmark]
-    public int DisArm_DisassembleOnDemand()
-    {
-        var count = 0;
-        var instructions = Disarm.Disassembler.DisassembleOnDemand(Code.Value, Code.Address, continueOnError: true);
-
-        foreach (var instruction in instructions)
-        {
-            if (instruction.Mnemonic is Arm64Mnemonic.B or Arm64Mnemonic.BL or Arm64Mnemonic.BLR or Arm64Mnemonic.BR)
-            {
-                count++;
+                case Arm64Mnemonic.B:
+                case Arm64Mnemonic.BL:
+                case Arm64Mnemonic.BLR:
+                case Arm64Mnemonic.BR:
+                case Arm64Mnemonic.CBNZ:
+                case Arm64Mnemonic.CBZ:
+                case Arm64Mnemonic.TBNZ:
+                case Arm64Mnemonic.TBZ:
+                    count++;
+                    break;
             }
         }
 

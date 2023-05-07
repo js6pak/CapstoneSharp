@@ -3,10 +3,16 @@ using System.Runtime.InteropServices;
 
 namespace CapstoneSharp.Arm64;
 
+/// <summary>
+/// Represents an ARM64 operand.
+/// </summary>
 [SuppressMessage("ReSharper", "UnassignedGetOnlyAutoProperty", Justification = "This is a struct used for interop")]
 #pragma warning disable CS0649
 public readonly struct CapstoneArm64Operand
 {
+    /// <summary>
+    /// Gets Vector Index for some vector operands (or -1 if irrelevant).
+    /// </summary>
     public int VectorIndex { get; }
 
     public CapstoneArm64VectorArrangementSpecifier VectorArrangementSpecifier { get; }

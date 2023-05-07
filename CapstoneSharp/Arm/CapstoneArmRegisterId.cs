@@ -1,5 +1,8 @@
 namespace CapstoneSharp.Arm;
 
+/// <summary>
+/// ARM register id.
+/// </summary>
 public enum CapstoneArmRegisterId : uint
 {
     Invalid = 0,

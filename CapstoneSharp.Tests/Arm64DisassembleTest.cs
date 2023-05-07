@@ -3,7 +3,7 @@ using CapstoneSharp.Arm64;
 
 namespace CapstoneSharp.Tests;
 
-public class Arm64DisassembleTest : BaseDisassembleTest<CapstoneArm64Instruction>
+public sealed class Arm64DisassembleTest : BaseDisassembleTest<CapstoneArm64InstructionId, CapstoneArm64Instruction, UnsafeCapstoneArm64Instruction>
 {
     protected override byte[] Code { get; } =
     {
@@ -18,17 +18,19 @@ public class Arm64DisassembleTest : BaseDisassembleTest<CapstoneArm64Instruction
 
     protected override ulong Address => 0;
 
-    protected override CapstoneDisassembler<CapstoneArm64Instruction> Disassembler { get; } = new CapstoneArm64Disassembler
+    protected override CapstoneArm64Disassembler Disassembler { get; } = new()
     {
         EnableInstructionDetails = true,
     };
 
     [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]
-    protected override void Verify(CapstoneArm64Instruction instruction, ref int i)
+    private void Verify<TInstruction, TInstructionDetails>(int i, ref TInstruction instruction, ref TInstructionDetails details)
+        where TInstruction : ICapstoneArm64Instruction
+        where TInstructionDetails : ICapstoneArm64InstructionDetails
     {
         Assert.Equal(4, instruction.Size);
+        Assert.True(instruction.Bytes.SequenceEqual(Code.AsSpan(i * 4, 4)));
 
-        ref var details = ref instruction.Details;
         var archDetails = details.ArchDetails;
 
         switch (i)
@@ -198,7 +200,17 @@ public class Arm64DisassembleTest : BaseDisassembleTest<CapstoneArm64Instruction
             default:
                 throw new ArgumentOutOfRangeException(nameof(instruction));
         }
+    }
 
-        i++;
+    protected override void Verify(int i, CapstoneArm64Instruction instruction)
+    {
+        var details = instruction.Details;
+
+        Verify(i, ref instruction, ref details);
+    }
+
+    protected override unsafe void Verify(int i, UnsafeCapstoneArm64Instruction* instruction)
+    {
+        Verify(i, ref *instruction, ref *instruction->Details);
     }
 }

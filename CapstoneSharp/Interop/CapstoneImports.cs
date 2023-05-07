@@ -52,7 +52,7 @@ internal static unsafe class CapstoneImports
     /// Return a string describing given error code.
     /// </summary>
     /// <param name="code">error code</param>
-    /// <returns>a pointer to a string that describes the error code passed in the argument <see cref="code"/></returns>
+    /// <returns>a pointer to a string that describes the error code passed in the argument <paramref name="code"/></returns>
     [DllImport("capstone", CallingConvention = CallingConvention.Cdecl, EntryPoint = "cs_strerror", ExactSpelling = true)]
     public static extern IntPtr strerror(CapstoneStatus code);
 
@@ -60,7 +60,7 @@ internal static unsafe class CapstoneImports
     /// Disassemble binary code, given the code buffer, size, address and number
     /// of instructions to be decoded.
     /// This API dynamically allocate memory to contain disassembled instruction.
-    /// Resulting instructions will be put into <see cref="insn"/>
+    /// Resulting instructions will be put into <paramref name="insn"/>
     /// </summary>
     /// <param name="handle">handle returned by cs_open()</param>
     /// <param name="code">buffer containing raw binary code to be disassembled.</param>
@@ -91,7 +91,7 @@ internal static unsafe class CapstoneImports
     /// <summary>
     /// Fast API to disassemble binary code, given the code buffer, size, address
     /// and number of instructions to be decoded.
-    /// This API puts the resulting instruction into a given cache in <see cref="insn"/>.
+    /// This API puts the resulting instruction into a given cache in <paramref name="insn"/>.
     /// </summary>
     /// <param name="handle">handle returned by cs_open()</param>
     /// <param name="code">buffer containing raw binary code to be disassembled</param>

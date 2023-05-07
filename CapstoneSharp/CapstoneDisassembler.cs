@@ -1,10 +1,17 @@
-using System.Collections;
-using System.Runtime.CompilerServices;
 using CapstoneSharp.Interop;
 
 namespace CapstoneSharp;
 
-public abstract unsafe class CapstoneDisassembler<TInstruction> : IDisposable where TInstruction : unmanaged, IInstruction<TInstruction>
+/// <summary>
+/// Represents a Capstone disassembler.
+/// </summary>
+/// <typeparam name="TId">The type of architecture specific instruction id.</typeparam>
+/// <typeparam name="TInstruction">The type of architecture specific instruction.</typeparam>
+/// <typeparam name="TUnsafeInstruction">The type of architecture specific unsafe instruction.</typeparam>
+public abstract unsafe partial class CapstoneDisassembler<TId, TInstruction, TUnsafeInstruction> : IDisposable
+    where TId : unmanaged, Enum
+    where TInstruction : ICapstoneInstruction<TId>
+    where TUnsafeInstruction : unmanaged, ICapstoneInstruction<TId>
 {
     private CapstoneDisassemblerHandle _handle;
 
@@ -13,76 +20,69 @@ public abstract unsafe class CapstoneDisassembler<TInstruction> : IDisposable wh
         CapstoneException.ThrowIfUnsuccessful(CapstoneImports.open(arch, mode, out _handle));
     }
 
-    private protected void SetOption(CapstoneOptionType type, CapstoneOptionValue value)
+    /// <summary>
+    /// Allocates an instruction.
+    /// </summary>
+    /// <returns>A pointer to the instruction.</returns>
+    public abstract TUnsafeInstruction* AllocInstruction();
+
+    /// <summary>
+    /// Frees the specified instruction.
+    /// </summary>
+    /// <param name="ptr">A pointer to the instruction.</param>
+    public abstract void FreeInstruction(TUnsafeInstruction* ptr);
+
+    /// <summary>
+    /// Allocates an instruction.
+    /// </summary>
+    /// <param name="instruction">A pointer to the instruction.</param>
+    /// <returns>A <see cref="UnsafeInstructionOwner"/>.</returns>
+    public UnsafeInstructionOwner AllocInstruction(out TUnsafeInstruction* instruction)
     {
-        _handle.EnsureAlive();
-        CapstoneException.ThrowIfUnsuccessful(CapstoneImports.option(_handle, type, (nuint)value));
+        instruction = AllocInstruction();
+        return new UnsafeInstructionOwner(this, instruction);
     }
 
-    private protected void SetOption(CapstoneOptionType type, bool value)
+    /// <summary>
+    /// Represents a <see cref="IDisposable"/> wrapper that frees the instruction on <see cref="IDisposable.Dispose"/>.
+    /// </summary>
+    public readonly struct UnsafeInstructionOwner : IDisposable
     {
-        SetOption(type, value ? CapstoneOptionValue.On : CapstoneOptionValue.Off);
-    }
+        private readonly CapstoneDisassembler<TId, TInstruction, TUnsafeInstruction> _disassembler;
+        private readonly TUnsafeInstruction* _handle;
 
-    private bool _enableInstructionDetails;
-
-    public bool EnableInstructionDetails
-    {
-        get => _enableInstructionDetails;
-        set => SetOption(CapstoneOptionType.Detail, _enableInstructionDetails = value);
-    }
-
-    private bool _enableSkipData;
-
-    public bool EnableSkipData
-    {
-        get => _enableSkipData;
-        set => SetOption(CapstoneOptionType.SkipData, _enableSkipData = value);
-    }
-
-    public ReadOnlySpan<TInstruction> Disassemble(ReadOnlySpan<byte> code, ulong address, int count = 0)
-    {
-        _handle.EnsureAlive();
-
-        fixed (byte* codePointer = code)
+        internal UnsafeInstructionOwner(CapstoneDisassembler<TId, TInstruction, TUnsafeInstruction> disassembler, TUnsafeInstruction* handle)
         {
-            count = (int)CapstoneImports.disasm(_handle, codePointer, (nuint)code.Length, address, (nuint)count, out var instructions);
-            if (count == 0) CapstoneException.ThrowIfUnsuccessful(CapstoneImports.errno(_handle));
-            return new ReadOnlySpan<TInstruction>(instructions, count);
+            _disassembler = disassembler;
+            _handle = handle;
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            _disassembler.FreeInstruction(_handle);
         }
     }
 
-    public TInstruction* AllocInstruction()
-    {
-#if NET6_0_OR_GREATER
-        // Use our own alloc to save ~1000 bytes by allocating specific arch details struct
-        return TInstruction.Alloc(EnableInstructionDetails);
-#else
-        return (TInstruction*)CapstoneImports.malloc(_handle);
-#endif
-    }
+    /// <summary>
+    /// Wraps an <typeparamref name="TUnsafeInstruction"/> in a safe <typeparamref name="TInstruction"/>.
+    /// </summary>
+    /// <param name="ptr">The pointer to an <typeparamref name="TUnsafeInstruction"/>.</param>
+    /// <returns>A wrapped <typeparamref name="TInstruction"/>.</returns>
+    public abstract TInstruction WrapUnsafeInstruction(TUnsafeInstruction* ptr);
 
-    public void FreeInstruction(TInstruction* instruction, nuint count = 1)
-    {
-#if NET6_0_OR_GREATER
-        TInstruction.Free(instruction, count);
-#else
-        CapstoneImports.free(instruction, count);
-#endif
-    }
-
-    public void FreeInstructions(ReadOnlySpan<TInstruction> instructions)
-    {
-        FreeInstruction(UnsafeExtensions.AsPointer(ref instructions), (nuint)instructions.Length);
-    }
-
-    public bool Iterate(byte** code, nuint* size, ref ulong address, TInstruction* instruction)
+    /// <summary>
+    /// Unsafely iterates specified <paramref name="code"/>.
+    /// When used with caution this can be used to disassemble instructions with no managed allocations.
+    /// </summary>
+    /// <returns>true if there are more instructions to iterate; false if it's the end.</returns>
+    public bool UnsafeIterate(byte** code, nuint* size, ulong* address, TUnsafeInstruction* instruction)
     {
         _handle.EnsureAlive();
 
         if (*size <= 0) return false;
 
-        if (!CapstoneImports.disasm_iter(_handle, code, size, UnsafeExtensions.AsPointer(ref address), instruction))
+        if (!CapstoneImports.disasm_iter(_handle, code, size, address, instruction))
         {
             var status = CapstoneImports.errno(_handle);
             if (status == CapstoneStatus.Ok) return false;
@@ -92,7 +92,8 @@ public abstract unsafe class CapstoneDisassembler<TInstruction> : IDisposable wh
         return true;
     }
 
-    public bool Iterate(ref ReadOnlySpan<byte> code, ref ulong address, TInstruction* instruction)
+    /// <inheritdoc cref="UnsafeIterate(byte**,nuint*,ulong*,TUnsafeInstruction*)"/>
+    public bool UnsafeIterate(ref ReadOnlySpan<byte> code, ulong* address, TUnsafeInstruction* instruction)
     {
         _handle.EnsureAlive();
 
@@ -101,118 +102,18 @@ public abstract unsafe class CapstoneDisassembler<TInstruction> : IDisposable wh
         fixed (byte* codePointer = code)
         {
             var size = (nuint)code.Length;
-            var result = Iterate(&codePointer, &size, ref address, instruction);
+            var result = UnsafeIterate(&codePointer, &size, address, instruction);
             code = new ReadOnlySpan<byte>(codePointer, (int)size);
             return result;
         }
     }
 
-    public InstructionEnumerator Iterate(byte* code, nuint size, ulong address)
-    {
-        return new InstructionEnumerator(this, code, size, address);
-    }
-
-    public RefInstructionEnumerator Iterate(ReadOnlySpan<byte> code, ulong address)
-    {
-        return new RefInstructionEnumerator(this, code, address);
-    }
-
-    public struct InstructionEnumerator : IEnumerable<TInstruction>, IEnumerator<TInstruction>
-    {
-        private readonly CapstoneDisassembler<TInstruction> _disassembler;
-        private readonly TInstruction* _instruction;
-        private byte* _code;
-        private nuint _size;
-        private ulong _address;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal InstructionEnumerator(CapstoneDisassembler<TInstruction> disassembler, byte* code, nuint size, ulong address)
-        {
-            _disassembler = disassembler;
-            _instruction = disassembler.AllocInstruction();
-            _code = code;
-            _size = size;
-            _address = address;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool MoveNext()
-        {
-            fixed (byte** code = &_code)
-            fixed (nuint* size = &_size)
-            {
-                return _disassembler.Iterate(code, size, ref _address, _instruction);
-            }
-        }
-
-        public void Reset()
-        {
-            throw new NotSupportedException();
-        }
-
-        object IEnumerator.Current => Current;
-
-        public TInstruction Current
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => *_instruction;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            _disassembler.FreeInstruction(_instruction);
-        }
-
-        public InstructionEnumerator GetEnumerator() => this;
-        IEnumerator<TInstruction> IEnumerable<TInstruction>.GetEnumerator() => this;
-        IEnumerator IEnumerable.GetEnumerator() => this;
-    }
-
-    public ref struct RefInstructionEnumerator
-    {
-        private readonly CapstoneDisassembler<TInstruction> _disassembler;
-        private readonly TInstruction* _instruction;
-        private ReadOnlySpan<byte> _code;
-        private ulong _address;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal RefInstructionEnumerator(CapstoneDisassembler<TInstruction> disassembler, ReadOnlySpan<byte> code, ulong address)
-        {
-            _disassembler = disassembler;
-            _instruction = disassembler.AllocInstruction();
-            _code = code;
-            _address = address;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool MoveNext()
-        {
-            return _disassembler.Iterate(ref _code, ref _address, _instruction);
-        }
-
-        public readonly TInstruction Current
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => *_instruction;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Dispose()
-        {
-            _disassembler.FreeInstruction(_instruction);
-        }
-
-        public readonly RefInstructionEnumerator GetEnumerator() => this;
-
-        public InstructionEnumerator ToEnumerable() => new InstructionEnumerator(_disassembler, UnsafeExtensions.AsPointer(ref _code), (nuint)_code.Length, _address);
-    }
-
+    /// <inheritdoc />
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        _handle.EnsureAlive();
 
+        _handle.EnsureAlive();
         CapstoneException.ThrowIfUnsuccessful(CapstoneImports.close(ref _handle));
     }
 }

@@ -1,10 +1,17 @@
 <Project>
-    <Import Project="CapstoneSharp/CapstoneSharp.props" />
-
     <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>11</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <AnalysisMode>Recommended</AnalysisMode>
         <AnalysisModePerformance>All</AnalysisModePerformance>
     </PropertyGroup>
+
+    <ItemGroup Condition="$(MSBuildProjectName) != 'CapstoneSharp'">
+        <Compile Include="$(MSBuildThisFileDirectory)/CapstoneSharp/GenericUsings.g.cs" />
+    </ItemGroup>
 </Project>

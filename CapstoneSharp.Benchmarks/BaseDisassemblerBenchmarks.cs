@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using ELFSharp.ELF;
 using ELFSharp.ELF.Sections;
@@ -38,18 +36,19 @@ public abstract class BaseDisassemblerBenchmarks
     public void GlobalCleanup()
     {
         Disassembler.Dispose();
+        DisassemblerNoDetails.Dispose();
         GeeDisassembler.Dispose();
     }
 
     public record CodeParam(string Name, ulong Address, byte[] Value)
     {
-        public static implicit operator byte[](CodeParam param) => param.Value;
-        public static implicit operator ReadOnlySpan<byte>(CodeParam param) => param.Value;
+        public ReadOnlySpan<byte> AsSpan => Value;
+
         public override string ToString() => Name;
     }
 
     [ParamsSource(nameof(ValuesForCode))]
-    public CodeParam Code { get; set; }
+    public CodeParam Code { get; set; } = null!;
 
     public static IEnumerable<CodeParam> ValuesForCode
     {

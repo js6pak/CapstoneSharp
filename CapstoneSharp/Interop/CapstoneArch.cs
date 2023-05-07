@@ -21,7 +21,7 @@ internal enum CapstoneArch : uint
     Mips,
 
     /// <summary>
-    /// X86 architecture (including x86 & x86-64)
+    /// X86 architecture (including x86 &amp; x86-64)
     /// </summary>
     X86,
 

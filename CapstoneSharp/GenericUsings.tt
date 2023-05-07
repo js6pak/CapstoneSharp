@@ -1,0 +1,54 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".g.cs" #>
+<#
+    void WriteGlobalUsing(string alias, string target)
+    {
+        WriteLine($@"global using {alias} = {target};");
+    }
+
+    var architectures = new[]
+    {
+        "Arm", "Arm64",
+    };
+
+    var instructionTypes = new[]
+    {
+        "ICapstoneInstruction", "CapstoneInstruction", "Interop.UnsafeCapstoneInstruction",
+    };
+
+    const string rootNamespace = "global::CapstoneSharp";
+
+    foreach (var architecture in architectures)
+    {
+        var @namespace = rootNamespace + "." + architecture;
+
+        var instructionId = $"{@namespace}.Capstone{architecture}InstructionId";
+        var registerId = $"{@namespace}.Capstone{architecture}RegisterId";
+        var instructionGroup = $"{@namespace}.Capstone{architecture}InstructionGroup";
+        var instructionArchDetails = $"{@namespace}.Capstone{architecture}InstructionArchDetails";
+
+        WriteLine($"#region {architecture}");
+
+        foreach (var instructionType in instructionTypes)
+        {
+            var alias = instructionType
+                .Substring(instructionType.LastIndexOf(".", StringComparison.Ordinal) + 1)
+                .Replace("Capstone", $"Capstone{architecture}");
+
+            WriteGlobalUsing(alias, $"{rootNamespace}.{instructionType}" + (instructionType == "ICapstoneInstruction" ? $"<{instructionId}>" : $@"<
+    {instructionId},
+    {registerId},
+    {instructionGroup},
+    {instructionArchDetails}
+>"));
+
+            WriteGlobalUsing(alias + "Details", $@"{rootNamespace}.{instructionType}Details<
+    {registerId},
+    {instructionGroup},
+    {instructionArchDetails}
+>");
+        }
+
+        WriteLine("#endregion");
+    }
+#>

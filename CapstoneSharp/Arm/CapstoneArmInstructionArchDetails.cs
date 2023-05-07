@@ -1,25 +1,53 @@
 namespace CapstoneSharp.Arm;
 
+/// <inheritdoc />
 [SuppressMessage("ReSharper", "UnassignedGetOnlyAutoProperty", Justification = "This is a struct used for interop")]
 #pragma warning disable CS0649
 public readonly struct CapstoneArmInstructionArchDetails : ICapstoneInstructionArchDetails
 {
+    /// <summary>
+    /// Gets a value indicating whether user-mode registers are loaded (for LDM/STM instructions).
+    /// </summary>
     public NativeBoolean IsUserMode { get; }
 
+    /// <summary>
+    /// Gets scalar size for vector instructions.
+    /// </summary>
     public int VectorSize { get; }
 
+    /// <summary>
+    /// Gets data type for elements of vector instructions.
+    /// </summary>
     public CapstoneArmVectorDataType VectorDataType { get; }
 
+    /// <summary>
+    /// Gets the CPS mode for CPS instruction.
+    /// </summary>
     public CapstoneArmCpsModeType CpsMode { get; }
 
+    /// <summary>
+    /// Gets the CPS flag for CPS instruction.
+    /// </summary>
     public CapstoneArmCpsFlagType CpsFlag { get; }
 
+    /// <summary>
+    /// Gets the condition code.
+    /// </summary>
     public CapstoneArmConditionCode ConditionCode { get; }
 
+    /// <summary>
+    /// Gets a value indicating whether this instruction updates flags.
+    /// </summary>
     public NativeBoolean UpdateFlags { get; }
 
+    /// <summary>
+    /// Gets a value indicating whether this instruction requests writeback.
+    /// </summary>
     public NativeBoolean WriteBack { get; }
 
+    /// <summary>
+    /// Gets the operation for some memory barrier instructions.
+    /// </summary>
     public CapstoneArmMemoryBarrierOperation MemoryBarrierOperation { get; }
 
     private readonly byte _operandsCount;
@@ -69,6 +97,9 @@ public readonly struct CapstoneArmInstructionArchDetails : ICapstoneInstructionA
         private readonly CapstoneArmOperand _35;
     }
 
+    /// <summary>
+    /// Gets the operands of this instruction.
+    /// </summary>
     public unsafe ReadOnlySpan<CapstoneArmOperand> Operands
     {
         get

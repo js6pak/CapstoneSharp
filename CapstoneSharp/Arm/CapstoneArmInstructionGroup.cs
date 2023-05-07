@@ -1,5 +1,8 @@
 namespace CapstoneSharp.Arm;
 
+/// <summary>
+/// ARM instruction group id.
+/// </summary>
 public enum CapstoneArmInstructionGroup : byte
 {
     Invalid = 0,

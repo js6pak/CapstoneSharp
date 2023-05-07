@@ -3,6 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace CapstoneSharp.Arm;
 
+/// <summary>
+/// Represents an ARM operand.
+/// </summary>
 [SuppressMessage("ReSharper", "UnassignedGetOnlyAutoProperty", Justification = "This is a struct used for interop")]
 #pragma warning disable CS0649
 public readonly struct CapstoneArmOperand

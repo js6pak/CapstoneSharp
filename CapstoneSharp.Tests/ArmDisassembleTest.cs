@@ -1,10 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using CapstoneSharp.Arm;
-using CapstoneSharp.Arm64;
 
 namespace CapstoneSharp.Tests;
 
-public class ArmDisassembleTest : BaseDisassembleTest<CapstoneArmInstruction>
+public sealed class ArmDisassembleTest : BaseDisassembleTest<CapstoneArmInstructionId, CapstoneArmInstruction, UnsafeCapstoneArmInstruction>
 {
     protected override byte[] Code { get; } =
     {
@@ -18,20 +17,21 @@ public class ArmDisassembleTest : BaseDisassembleTest<CapstoneArmInstruction>
 
     protected override ulong Address => 0;
 
-    protected override CapstoneDisassembler<CapstoneArmInstruction> Disassembler { get; } = new CapstoneArmDisassembler
+    protected override CapstoneArmDisassembler Disassembler { get; } = new()
     {
         EnableInstructionDetails = true,
     };
 
     [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]
-    protected override void Verify(CapstoneArmInstruction instruction, ref int i)
+    private void Verify<TInstruction, TInstructionDetails>(int i, ref TInstruction instruction, ref TInstructionDetails details)
+        where TInstruction : ICapstoneArmInstruction
+        where TInstructionDetails : ICapstoneArmInstructionDetails
     {
         Assert.Equal(4, instruction.Size);
+        Assert.True(instruction.Bytes.SequenceEqual(Code.AsSpan(i * 4, 4)));
+        Assert.True(details.BelongsToGroup(CapstoneArmInstructionGroup.ARM));
 
-        ref var details = ref instruction.Details;
         var archDetails = details.ArchDetails;
-
-        Assert.True(instruction.Details.BelongsToGroup(CapstoneArmInstructionGroup.ARM));
 
         switch (i)
         {
@@ -176,7 +176,17 @@ public class ArmDisassembleTest : BaseDisassembleTest<CapstoneArmInstruction>
             default:
                 throw new ArgumentOutOfRangeException(nameof(instruction));
         }
+    }
 
-        i++;
+    protected override void Verify(int i, CapstoneArmInstruction instruction)
+    {
+        var details = instruction.Details;
+
+        Verify(i, ref instruction, ref details);
+    }
+
+    protected override unsafe void Verify(int i, UnsafeCapstoneArmInstruction* instruction)
+    {
+        Verify(i, ref *instruction, ref *instruction->Details);
     }
 }

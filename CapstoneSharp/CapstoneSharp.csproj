@@ -2,22 +2,28 @@
 
     <PropertyGroup>
         <TargetFrameworks>netstandard2.0;net7.0</TargetFrameworks>
-        <LangVersion>latest</LangVersion>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <ImplicitUsings>true</ImplicitUsings>
-        <Nullable>enable</Nullable>
 
         <Version>0.1.0</Version>
-        <Description>Typed but fast C# bindings for capstone</Description>
+        <Description>Strongly-typed fast C# bindings for capstone</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryUrl>https://github.com/js6pak/CapstoneSharp</RepositoryUrl>
-        <!--        <GenerateDocumentationFile>true</GenerateDocumentationFile>-->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+        <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+        <EnableAotAnalyzer>true</EnableAotAnalyzer>
+        <IsTrimmable>true</IsTrimmable>
+
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="libcapstone" Version="4.0.2" />
-        <PackageReference Include="System.Memory" Version="4.5.5" Condition="$(TargetFramework) == 'netstandard2.0'" />
+        <PackageReference Include="capstone" Version="4.0.2" />
+    </ItemGroup>
+
+    <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
+        <PackageReference Include="PolySharp" Version="1.13.1" PrivateAssets="all" />
+        <PackageReference Include="System.Memory" Version="4.5.5" />
     </ItemGroup>
 
     <ItemGroup>
@@ -27,7 +33,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="CapstoneSharp.props" Pack="true" PackagePath="build" />
-    </ItemGroup>
+        <None Update="**\*.tt">
+            <LastGenOutput>%(Filename).g.cs</LastGenOutput>
+            <Generator>TextTemplatingFileGenerator</Generator>
+        </None>
+        <Compile Update="**\*.g.cs">
+            <DependentUpon>$([System.IO.Path]::GetFileNameWithoutExtension('%(Filename)')).tt</DependentUpon>
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+        </Compile>
 
+        <Content Include="GenericUsings.g.cs" Pack="true" PackagePath="contentFiles/cs/any" BuildAction="Compile" />
+        <Content Include="$(MSBuildProjectName).props" Pack="true" PackagePath="build" />
+    </ItemGroup>
 </Project>

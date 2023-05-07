@@ -1,104 +1,47 @@
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System.Runtime.ConstrainedExecution;
+using CapstoneSharp.Interop;
 
-#pragma warning disable CS0649
 namespace CapstoneSharp;
 
-using System;
-
-[StructLayout(LayoutKind.Sequential)]
-public unsafe struct CapstoneInstructionDetails<TArchDetails, TRegister, TGroup>
-    where TArchDetails : unmanaged, ICapstoneInstructionArchDetails
+/// <inheritdoc cref="CapstoneSharp.ICapstoneInstructionDetails{TRegister,TGroup,TArchDetails}" />
+public sealed unsafe class CapstoneInstructionDetails<TRegister, TGroup, TArchDetails> : CriticalFinalizerObject, IDisposable, ICapstoneInstructionDetails<TRegister, TGroup, TArchDetails>
     where TRegister : unmanaged, Enum
     where TGroup : unmanaged, Enum
+    where TArchDetails : unmanaged, ICapstoneInstructionArchDetails
 {
-    static CapstoneInstructionDetails()
-    {
-        if (sizeof(TRegister) != sizeof(uint) || Enum.GetUnderlyingType(typeof(TRegister)) != typeof(uint))
-            throw new InvalidProgramException("TRegister's underlying type has to be an uint");
+    private UnsafeCapstoneInstructionDetails<TRegister, TGroup, TArchDetails>* _handle;
 
-        if (sizeof(TGroup) != sizeof(byte) || Enum.GetUnderlyingType(typeof(TGroup)) != typeof(byte))
-            throw new InvalidProgramException("TGroup's underlying type has to be a byte");
+    internal CapstoneInstructionDetails(UnsafeCapstoneInstructionDetails<TRegister, TGroup, TArchDetails>* handle)
+    {
+        _handle = handle;
     }
 
-    /// <summary>
-    /// list of implicit registers read by this insn
-    /// </summary>
-    private fixed ushort _implicitlyReadRegisters[12];
-
-    /// <summary>
-    /// number of implicit registers read by this insn
-    /// </summary>
-    private byte _implicitlyReadRegistersCount;
-
-    public ReadOnlySpan<TRegister> ImplicitlyReadRegisters
+    ~CapstoneInstructionDetails()
     {
-        get
-        {
-            fixed (ushort* registers = _implicitlyReadRegisters)
-            {
-                return new ReadOnlySpan<TRegister>(registers, _implicitlyReadRegistersCount);
-            }
-        }
+        Dispose();
     }
 
-    /// <summary>
-    /// list of implicit registers modified by this insn
-    /// </summary>
-    private fixed ushort _implicitlyWrittenRegisters[20];
-
-    /// <summary>
-    /// number of implicit registers modified by this insn
-    /// </summary>
-    private byte _implicitlyWrittenRegistersCount;
-
-    public ReadOnlySpan<TRegister> ImplicitlyWrittenRegisters
+    /// <inheritdoc />
+    public void Dispose()
     {
-        get
-        {
-            fixed (ushort* registers = _implicitlyWrittenRegisters)
-            {
-                return new ReadOnlySpan<TRegister>(registers, _implicitlyWrittenRegistersCount);
-            }
-        }
+        GC.SuppressFinalize(this);
+
+        NativeMemoryExtensions.Free(_handle);
+        _handle = default;
     }
 
-    /// <summary>
-    /// list of group this instruction belong to
-    /// </summary>
-    private fixed byte _groups[8];
+    /// <inheritdoc />
+    public ReadOnlySpan<TRegister> ImplicitlyReadRegisters => _handle->ImplicitlyReadRegisters;
 
-    /// <summary>
-    /// number of groups this insn belongs to
-    /// </summary>
-    private byte _groupsCount;
+    /// <inheritdoc />
+    public ReadOnlySpan<TRegister> ImplicitlyWrittenRegisters => _handle->ImplicitlyWrittenRegisters;
 
-    public ReadOnlySpan<TGroup> Groups
-    {
-        get
-        {
-            fixed (byte* groups = _groups)
-            {
-                return new ReadOnlySpan<TGroup>(groups, _groupsCount);
-            }
-        }
-    }
+    /// <inheritdoc />
+    public ReadOnlySpan<TGroup> Groups => _handle->Groups;
 
-    public bool BelongsToGroup(TGroup group)
-    {
-        var groupAsByte = Unsafe.As<TGroup, byte>(ref group);
+    /// <inheritdoc />
+    public bool BelongsToGroup(TGroup group) => _handle->BelongsToGroup(group);
 
-#if NET6_0_OR_GREATER
-        return MemoryMarshal.Cast<TGroup, byte>(Groups).Contains(groupAsByte);
-#else
-        for (var i = 0; i < _groupsCount; i++)
-        {
-            if (_groups[i] == groupAsByte) return true;
-        }
-
-        return false;
-#endif
-    }
-
-    public TArchDetails ArchDetails { get; }
+    /// <inheritdoc />
+    public TArchDetails ArchDetails => _handle->ArchDetails;
 }

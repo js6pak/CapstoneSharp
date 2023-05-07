@@ -1,7 +1,7 @@
 namespace CapstoneSharp.Arm64;
 
 /// <summary>
-/// ARM64 instruction id
+/// ARM64 instruction id.
 /// </summary>
 public enum CapstoneArm64InstructionId : uint
 {

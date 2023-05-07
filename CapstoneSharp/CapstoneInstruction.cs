@@ -1,113 +1,88 @@
-#pragma warning disable CS0649
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System.Runtime.ConstrainedExecution;
+using CapstoneSharp.Interop;
 
 namespace CapstoneSharp;
 
-/// <summary>
-/// Detail information of disassembled instruction
-/// </summary>
-public unsafe struct CapstoneInstruction<TId, TArchDetails, TRegister, TGroup> : IInstruction<CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>>
+/// <inheritdoc cref="CapstoneSharp.ICapstoneInstruction" />
+/// <typeparam name="TId"><inheritdoc cref="CapstoneSharp.ICapstoneInstruction{T}" /></typeparam>
+/// <typeparam name="TRegister">The type of architecture specific register id.</typeparam>
+/// <typeparam name="TGroup">The type of architecture specific group id.</typeparam>
+/// <typeparam name="TArchDetails">The type of architecture specific details.</typeparam>
+public sealed unsafe class CapstoneInstruction<TId, TRegister, TGroup, TArchDetails> : CriticalFinalizerObject, IDisposable, ICapstoneInstruction<TId>
     where TId : unmanaged, Enum
-    where TArchDetails : unmanaged, ICapstoneInstructionArchDetails
     where TRegister : unmanaged, Enum
     where TGroup : unmanaged, Enum
+    where TArchDetails : unmanaged, ICapstoneInstructionArchDetails
 {
-    private uint _id;
+    static CapstoneInstruction()
+    {
+        RuntimeHelpers.RunClassConstructor(typeof(UnsafeCapstoneInstruction<TId, TRegister, TGroup, TArchDetails>).TypeHandle);
+    }
 
-    /// <summary>Instruction ID (basically a numeric ID for the instruction mnemonic)</summary>
-    /// <remarks>NOTE: in Skipdata mode, "data" instruction has 0 for this id field.</remarks>
-    public TId Id => Unsafe.As<uint, TId>(ref _id);
+    private UnsafeCapstoneInstruction<TId, TRegister, TGroup, TArchDetails>* _handle;
+    private readonly CapstoneInstructionDetails<TRegister, TGroup, TArchDetails>? _details;
 
-    public bool IsSkippedData => _id == 0;
+    internal CapstoneInstruction(UnsafeCapstoneInstruction<TId, TRegister, TGroup, TArchDetails>* handle)
+    {
+        _handle = handle;
 
-    uint IInstruction<CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>>.Id => _id;
+        if (!IsSkippedData && handle->Details != default)
+        {
+            _details = new CapstoneInstructionDetails<TRegister, TGroup, TArchDetails>(handle->Details);
+        }
+    }
 
-    /// <summary>Address (EIP) of this instruction</summary>
-    public ulong Address { get; }
+    ~CapstoneInstruction()
+    {
+        Dispose();
+    }
 
-    /// <summary>Size of this instruction</summary>
-    public ushort Size { get; }
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
 
-    /// <summary>Machine bytes of this instruction, with number of bytes indicated by <see cref="Size"/> above</summary>
-    private fixed byte _bytes[16];
+        NativeMemoryExtensions.Free(_handle);
+        _handle = default;
+    }
 
-    public readonly ReadOnlySpan<byte> Bytes
+    /// <inheritdoc />
+    public TId Id => _handle->Id;
+
+    /// <inheritdoc />
+    public bool IsSkippedData => _handle->IsSkippedData;
+
+    /// <inheritdoc />
+    public ulong Address => _handle->Address;
+
+    /// <inheritdoc />
+    public ushort Size => _handle->Size;
+
+    /// <inheritdoc />
+    public ReadOnlySpan<byte> Bytes => _handle->Bytes;
+
+    /// <inheritdoc />
+    public string Mnemonic => _handle->Mnemonic;
+
+    /// <inheritdoc />
+    public string Operands => _handle->Operands;
+
+    /// <summary>
+    /// Gets the instruction details.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when <see cref="IsSkippedData"/> is true.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when <see cref="CapstoneDisassembler{TId,TInstruction,TUnsafeInstruction}.EnableInstructionDetails"/> is false.</exception>
+    public CapstoneInstructionDetails<TRegister, TGroup, TArchDetails> Details
     {
         get
         {
-            fixed (byte* bytes = _bytes)
-            {
-                return new ReadOnlySpan<byte>(bytes, Size);
-            }
+            if (IsSkippedData) throw new InvalidOperationException("Cannot get details for a \"data\" instruction");
+            return _details ?? throw new InvalidOperationException("Details support is disabled in the CapstoneDisassembler");
         }
     }
 
-    /// <summary>Ascii text of instruction mnemonic</summary>
-    private fixed byte _mnemonic[32];
-
-    public readonly string Mnemonic
-    {
-        get
-        {
-            fixed (byte* mnemonic = _mnemonic)
-            {
-                return Marshal.PtrToStringAnsi((IntPtr)mnemonic) ?? throw new ArgumentNullException(nameof(_mnemonic));
-            }
-        }
-    }
-
-    /// <summary>Ascii text of instruction operands</summary>
-    private fixed byte _operands[160];
-
-    public readonly string Operands
-    {
-        get
-        {
-            fixed (byte* operands = _operands)
-            {
-                return Marshal.PtrToStringAnsi((IntPtr)operands) ?? throw new ArgumentNullException(nameof(_operands));
-            }
-        }
-    }
-
-#if NET6_0_OR_GREATER
-    private static T* Alloc<T>() where T : unmanaged
-    {
-        return (T*)NativeMemory.AllocZeroed((nuint)sizeof(T));
-    }
-
-    static CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>* IInstruction<CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>>.Alloc(bool allocateHandle)
-    {
-        var instruction = Alloc<CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>>();
-        instruction->_details = allocateHandle ? Alloc<CapstoneInstructionDetails<TArchDetails, TRegister, TGroup>>() : default;
-        return instruction;
-    }
-
-    static void IInstruction<CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>>.Free(CapstoneInstruction<TId, TArchDetails, TRegister, TGroup>* instruction, nuint count)
-    {
-        for (nuint i = 0; i < count; i++)
-        {
-            NativeMemory.Free(instruction[i]._details);
-        }
-
-        NativeMemory.Free(instruction);
-    }
-#endif
-
-    /// <summary>Pointer to cs_detail</summary>
-    /// <remarks>detail pointer is only valid when detail option is turned on</remarks>
-    private CapstoneInstructionDetails<TArchDetails, TRegister, TGroup>* _details;
-
-    public ref CapstoneInstructionDetails<TArchDetails, TRegister, TGroup> Details
-    {
-        get
-        {
-            if (IsSkippedData) throw new InvalidOperationException("Cannot get details for data");
-            return ref *_details;
-        }
-    }
-
+    /// <inheritdoc />
     public override string ToString()
     {
         return string.Join(" ", Mnemonic, Operands);

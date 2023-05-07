@@ -1,13 +1,23 @@
 namespace CapstoneSharp.Arm64;
 
+/// <inheritdoc />
 [SuppressMessage("ReSharper", "UnassignedGetOnlyAutoProperty", Justification = "This is a struct used for interop")]
 #pragma warning disable CS0649
 public readonly struct CapstoneArm64InstructionArchDetails : ICapstoneInstructionArchDetails
 {
+    /// <summary>
+    /// Gets the condition code of this instruction.
+    /// </summary>
     public CapstoneArm64ConditionCode ConditionCode { get; }
 
+    /// <summary>
+    /// Gets a value indicating whether this instruction updates flags.
+    /// </summary>
     public NativeBoolean UpdateFlags { get; }
 
+    /// <summary>
+    /// Gets a value indicating whether this instruction requests writeback.
+    /// </summary>
     public NativeBoolean Writeback { get; }
 
     private readonly byte _operandsCount;
@@ -29,6 +39,9 @@ public readonly struct CapstoneArm64InstructionArchDetails : ICapstoneInstructio
         private readonly CapstoneArm64Operand _7;
     }
 
+    /// <summary>
+    /// Gets the operands of this instruction.
+    /// </summary>
     public unsafe ReadOnlySpan<CapstoneArm64Operand> Operands
     {
         get

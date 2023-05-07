@@ -3,7 +3,7 @@ namespace CapstoneSharp.Interop;
 /// <summary>
 /// The exception that is thrown for a capstone error code.
 /// </summary>
-internal class CapstoneException : Exception
+internal sealed class CapstoneException : Exception
 {
     public CapstoneException(CapstoneStatus code) : base(code.GetMessage())
     {

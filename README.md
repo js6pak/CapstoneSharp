@@ -1,10 +1,10 @@
 # CapstoneSharp
 
-Typed but fast C# bindings for capstone
+Strongly-typed fast C# bindings for capstone
 
 - [x] arm64
 - [x] arm
-- [ ] x86 (you can use use [iced](https://github.com/icedland/iced) instead)
+- [ ] x86 (you can just use [iced](https://github.com/icedland/iced) instead)
 
 ```cs
 var disassembler = new CapstoneArm64Disassembler();
@@ -25,4 +25,4 @@ foreach (var instruction in disassembler.Iterate(code, 0x0))
 // ret 
 ```
 
-For more examples look at the [tests](https://github.com/js6pak/CapstoneSharp/tree/master/CapstoneSharp.Tests)
+For more examples look at the [tests](https://github.com/js6pak/CapstoneSharp/blob/master/CapstoneSharp.Tests/Arm64DisassembleTest.cs)

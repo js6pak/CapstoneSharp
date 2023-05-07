@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace CapstoneSharp.Interop;
 
+/// <inheritdoc cref="CapstoneSharp.ICapstoneInstructionDetails{TRegister,TGroup,TArchDetails}" />
 [SuppressMessage("ReSharper", "UnassignedGetOnlyAutoProperty", Justification = "This is a struct used for interop")]
 #pragma warning disable CS0649
 public unsafe struct UnsafeCapstoneInstructionDetails<TRegister, TGroup, TArchDetails> : ICapstoneInstructionDetails<TRegister, TGroup, TArchDetails>
@@ -16,22 +17,16 @@ public unsafe struct UnsafeCapstoneInstructionDetails<TRegister, TGroup, TArchDe
     static UnsafeCapstoneInstructionDetails()
     {
         if (sizeof(TRegister) != sizeof(uint) || Enum.GetUnderlyingType(typeof(TRegister)) != typeof(uint))
-            throw new InvalidProgramException("TRegister's underlying type has to be an uint");
+            throw new InvalidProgramException($"TRegister ({typeof(TRegister).FullName})'s underlying type has to be an uint");
 
         if (sizeof(TGroup) != sizeof(byte) || Enum.GetUnderlyingType(typeof(TGroup)) != typeof(byte))
-            throw new InvalidProgramException("TGroup's underlying type has to be a byte");
+            throw new InvalidProgramException($"TGroup ({typeof(TGroup).FullName})'s underlying type has to be a byte");
     }
 
-    /// <summary>
-    /// list of implicit registers read by this insn
-    /// </summary>
     private fixed ushort _implicitlyReadRegisters[12];
-
-    /// <summary>
-    /// number of implicit registers read by this insn
-    /// </summary>
     private readonly byte _implicitlyReadRegistersCount;
 
+    /// <inheritdoc />
     public readonly ReadOnlySpan<TRegister> ImplicitlyReadRegisters
     {
         get
@@ -43,17 +38,11 @@ public unsafe struct UnsafeCapstoneInstructionDetails<TRegister, TGroup, TArchDe
         }
     }
 
-    /// <summary>
-    /// list of implicit registers modified by this insn
-    /// </summary>
     private fixed ushort _implicitlyWrittenRegisters[20];
-
-    /// <summary>
-    /// number of implicit registers modified by this insn
-    /// </summary>
     private readonly byte _implicitlyWrittenRegistersCount;
 
-    public readonly ReadOnlySpan<TRegister> ImplicitlyWrittenRegisters
+    /// <inheritdoc />
+    public ReadOnlySpan<TRegister> ImplicitlyWrittenRegisters
     {
         get
         {
@@ -64,16 +53,10 @@ public unsafe struct UnsafeCapstoneInstructionDetails<TRegister, TGroup, TArchDe
         }
     }
 
-    /// <summary>
-    /// list of group this instruction belong to
-    /// </summary>
     private fixed byte _groups[8];
-
-    /// <summary>
-    /// number of groups this insn belongs to
-    /// </summary>
     private readonly byte _groupsCount;
 
+    /// <inheritdoc />
     public readonly ReadOnlySpan<TGroup> Groups
     {
         get
@@ -85,6 +68,7 @@ public unsafe struct UnsafeCapstoneInstructionDetails<TRegister, TGroup, TArchDe
         }
     }
 
+    /// <inheritdoc />
     public readonly bool BelongsToGroup(TGroup group)
     {
         var groupAsByte = Unsafe.As<TGroup, byte>(ref group);
@@ -101,5 +85,6 @@ public unsafe struct UnsafeCapstoneInstructionDetails<TRegister, TGroup, TArchDe
 #endif
     }
 
+    /// <inheritdoc />
     public TArchDetails ArchDetails { get; }
 }
